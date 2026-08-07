@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🕵️ Detective Digital - Juego 3</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #c62828 0%, #6a1b9a 100%);
+    margin: 0; padding: 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .container {
+    background: #fff; border-radius: 20px;
+    max-width: 900px; width: 100%;
+    padding: 30px 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+  h1 { text-align: center; color: #6a1b9a; font-size: 2.2em; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; font-size: 1.2em; margin-bottom: 25px; }
+  .progreso {
+    text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555;
+  }
+  .progreso-barra {
+    width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 8px;
+  }
+  .progreso-fill {
+    height: 100%; background: linear-gradient(90deg, #6a1b9a, #c62828); width: 0%; transition: width 0.5s;
+  }
+  .tarjeta {
+    background: #f3e5f5; border: 2px solid #6a1b9a; border-radius: 15px;
+    padding: 25px; margin-bottom: 20px; font-size: 1.25em; color: #333; line-height: 1.5;
+    text-align: center; min-height: 100px; display: flex; align-items: center; justify-content: center;
+  }
+  .botones {
+    display: flex; gap: 20px; justify-content: center; margin: 20px 0; flex-wrap: wrap;
+  }
+  .btn-grande {
+    padding: 20px 40px; font-size: 1.4em; border: none; border-radius: 15px;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; font-weight: 700; min-width: 200px;
+  }
+  .btn-seguro { background: #28a745; color: #fff; }
+  .btn-seguro:hover { background: #218838; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(40,167,69,0.3); }
+  .btn-peligroso { background: #dc3545; color: #fff; }
+  .btn-peligroso:hover { background: #c82333; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(220,53,69,0.3); }
+  .btn-seguro:disabled, .btn-peligroso:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+  .retroalimentacion {
+    padding: 18px 20px; border-radius: 12px; font-size: 1.1em; margin-top: 15px; font-weight: bold; line-height: 1.5;
+    text-align: center;
+  }
+  .retro-correcta { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+  .retro-incorrecta { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+  .oculto { display: none; }
+  .puntaje { text-align: center; font-size: 1.3em; font-weight: bold; color: #6a1b9a; margin-top: 15px; }
+  .instrucciones {
+    background: #fffbe6; border: 1px solid #ffe58f; border-radius: 10px; padding: 15px; margin-bottom: 20px; font-size: 1.05em; color: #614700;
+  }
+  .final { text-align: center; padding: 30px; }
+  .final h2 { color: #6a1b9a; font-size: 2em; }
+  .final .emoji { font-size: 3em; margin: 15px; }
+  .stats { display: flex; justify-content: space-around; margin-top: 20px; flex-wrap: wrap; gap: 15px; }
+  .stat-box { background: #f3e5f5; padding: 15px 25px; border-radius: 12px; text-align: center; font-size: 1em; }
+  .stat-box .big { font-size: 1.8em; font-weight: bold; color: #6a1b9a; }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <h1>🕵️ Detective Digital</h1>
+  <p class="subtitle">¿Seguro o Peligroso? Clasifica cada situación</p>
+
+  <div class="progreso">Situación <span id="nivelActual">1</span> de <span id="totalNiveles">12</span>
+    <div class="progreso-barra"><div class="progreso-fill" id="barra"></div></div>
+  </div>
+
+  <div id="juegoArea">
+    <div class="instrucciones">
+      🕵️ <strong>Instrucción:</strong> Lee cada situación y decide si es <strong>SEGURO</strong> (🟢) o <strong>PELIGROSO</strong> (🔴). ¡Piensa antes de responder!
+    </div>
+
+    <div class="tarjeta" id="tarjeta"></div>
+
+    <div class="botones">
+      <button class="btn-grande btn-seguro" id="btnSeguro" onclick="responder(true)">🟢 SEGURO</button>
+      <button class="btn-grande btn-peligroso" id="btnPeligroso" onclick="responder(false)">🔴 PELIGROSO</button>
+    </div>
+
+    <div id="retroalimentacion" class="retroalimentacion oculto"></div>
+
+    <div class="puntaje">Puntaje: <span id="puntaje">0</span> / <span id="totalPuntaje">12</span></div>
+  </div>
+
+  <div id="pantallaFinal" class="final oculto">
+    <div class="emoji">🏆</div>
+    <h2>¡Detective Digital completado!</h2>
+    <p style="font-size:1.2em; color:#555;">Puntaje final: <strong id="puntajeFinal"></strong></p>
+    <div class="stats">
+      <div class="stat-box"><div class="big" id="segurosEncontrados">0</div><div>Seguros detectados</div></div>
+      <div class="stat-box"><div class="big" id="peligrososEncontrados">0</div><div>Peligrosos detectados</div></div>
+    </div>
+    <p style="font-size:1.1em; color:#666; margin-top:20px;">Ahora sabes distinguir lo seguro de lo peligroso en internet y en el celular.</p>
+    <button class="btn-grande btn-seguro" onclick="location.reload()" style="margin-top:20px;">🔄 Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const situaciones = [
+  {
+    texto: "Usar una contraseña larga que mezcla palabras que recuerdo, números y símbolos",
+    seguro: true,
+    explicacion: "✅ SEGURO. Cada persona debe crear su propia contraseña larga y única, difícil de adivinar."
+  },
+  {
+    texto: "Usar la fecha de nacimiento como contraseña para todas las cuentas",
+    seguro: false,
+    explicacion: "🔴 PELIGROSO. La fecha de nacimiento es fácil de averiguar. Además, nunca use la misma contraseña para todo."
+  },
+  {
+    texto: "Una página que imita el banco le pide la contraseña de la cuenta para 'verificar identidad'",
+    seguro: false,
+    explicacion: "🔴 PELIGROSO. Los bancos nunca le piden la contraseña completa por web ni por teléfono. Cierre esa página."
+  },
+  {
+    texto: "Cerrar sesión en el banco cuando termina de usar el computador en una biblioteca pública",
+    seguro: true,
+    explicacion: "✅ SEGURO. Siempre cierre sesión en computadores compartidos para proteger su información."
+  },
+  {
+    texto: "Pedirle a una IA (como ChatGPT) que le ayude a redactar una carta formal",
+    seguro: true,
+    explicacion: "✅ SEGURO. La IA puede ayudarle a redactar textos. Solo no le dé información personal, contraseñas ni datos bancarios."
+  },
+  {
+    texto: "Darle su contraseña del banco a la IA para que le diga si es segura",
+    seguro: false,
+    explicacion: "🔴 PELIGROSO. Nunca comparta contraseñas con nadie, ni con una IA. Si quiere saber si su contraseña es segura, pídale a un familiar de confianza."
+  },
+  {
+    texto: "Recibir un correo de su banco con un enlace para 'actualizar datos' y hacer clic sin revisar",
+    seguro: false,
+    explicacion: "🔴 PELIGROSO. Los bancos no envían enlaces para actualizar datos. Es probablemente una estafa de phishing."
+  },
+  {
+    texto: "Verificar que el sitio web del banco empieza con 'https://' y tiene un candado antes de escribir datos",
+    seguro: true,
+    explicacion: "✅ SEGURO. El candado y 'https' significan que la conexión está cifrada y es más segura."
+  },
+  {
+    texto: "Descargar una aplicación de juegos desde un sitio web desconocido, no desde la tienda oficial",
+    seguro: false,
+    explicacion: "🔴 PELIGROSO. Las apps fuera de Google Play o App Store pueden contener virus o programas maliciosos que roban su información en el computador y en el celular."
+  },
+  {
+    texto: "Configurar la verificación en dos pasos (que le llegue un código al celular) para su correo electrónico",
+    seguro: true,
+    explicacion: "✅ SEGURO. La verificación en dos pasos es como una segunda cerradura. Aunque roben su contraseña, no podrán entrar sin su celular."
+  },
+  {
+    texto: "Antes de abrir un enlace extraño, verifica quién lo envió y si lo esperaba",
+    seguro: true,
+    explicacion: "✅ SEGURO. Siempre revise el remitente antes de abrir enlaces. Si no lo esperaba, no lo abra."
+  },
+  {
+    texto: "Una persona que dice ser del banco me pide el código que llegó por SMS",
+    seguro: false,
+    explicacion: "🔴 PELIGROSO. El banco nunca le pide el código de verificación. Ese código es solo para usted."
+  }
+];
+
+let idx = 0;
+let puntaje = 0;
+let seguros = 0;
+let peligrosos = 0;
+let esperando = false;
+
+function init() {
+  document.getElementById('totalNiveles').textContent = situaciones.length;
+  document.getElementById('totalPuntaje').textContent = situaciones.length;
+  mostrarSituacion();
+}
+
+function mostrarSituacion() {
+  if (idx >= situaciones.length) {
+    document.getElementById('juegoArea').classList.add('oculto');
+    document.getElementById('pantallaFinal').classList.remove('oculto');
+    document.getElementById('puntajeFinal').textContent = puntaje + ' / ' + situaciones.length;
+    document.getElementById('segurosEncontrados').textContent = seguros;
+    document.getElementById('peligrososEncontrados').textContent = peligrosos;
+    return;
+  }
+
+  const s = situaciones[idx];
+  document.getElementById('nivelActual').textContent = idx + 1;
+  document.getElementById('barra').style.width = ((idx) / situaciones.length * 100) + '%';
+  document.getElementById('tarjeta').textContent = s.texto;
+  document.getElementById('retroalimentacion').classList.add('oculto');
+  document.getElementById('btnSeguro').disabled = false;
+  document.getElementById('btnPeligroso').disabled = false;
+  esperando = true;
+}
+
+function responder(esSeguro) {
+  if (!esperando) return;
+  esperando = false;
+  document.getElementById('btnSeguro').disabled = true;
+  document.getElementById('btnPeligroso').disabled = true;
+
+  const s = situaciones[idx];
+  const retro = document.getElementById('retroalimentacion');
+  retro.classList.remove('oculto', 'retro-correcta', 'retro-incorrecta');
+
+  if (esSeguro === s.seguro) {
+    puntaje++;
+    document.getElementById('puntaje').textContent = puntaje;
+    retro.classList.add('retro-correcta');
+  } else {
+    retro.classList.add('retro-incorrecta');
+  }
+
+  if (s.seguro) seguros++; else peligrosos++;
+  retro.textContent = s.explicacion;
+
+  setTimeout(() => {
+    idx++;
+    mostrarSituacion();
+  }, 2500);
+}
+
+init();
+</script>
+</body>
+</html>

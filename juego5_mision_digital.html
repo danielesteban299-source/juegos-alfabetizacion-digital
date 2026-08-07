@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 Misión Digital - Juego 5</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f57c00 0%, #e64a19 100%);
+    margin: 0; padding: 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .container {
+    background: #fff; border-radius: 20px;
+    max-width: 900px; width: 100%;
+    padding: 30px 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+  h1 { text-align: center; color: #e64a19; font-size: 2.2em; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; font-size: 1.2em; margin-bottom: 25px; }
+  .progreso {
+    text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555;
+  }
+  .progreso-barra {
+    width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 8px;
+  }
+  .progreso-fill {
+    height: 100%; background: linear-gradient(90deg, #f57c00, #e64a19); width: 0%; transition: width 0.5s;
+  }
+  .narrativa {
+    background: #fff3e0; border-left: 5px solid #f57c00;
+    padding: 15px 20px; border-radius: 10px; font-size: 1.1em; margin-bottom: 20px; color: #5d3a00;
+  }
+  .escenario {
+    background: #fff8e1; border: 2px solid #f57c00; border-radius: 15px;
+    padding: 20px; margin-bottom: 20px; font-size: 1.2em; color: #333; line-height: 1.5;
+  }
+  .escenario .persona {
+    font-size: 2.5em; float: left; margin-right: 15px; margin-bottom: 10px;
+  }
+  .escenario::after { content: ""; display: table; clear: both; }
+  .opciones { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+  .opcion {
+    padding: 16px 20px; font-size: 1.15em; border: 2px solid #ddd; border-radius: 12px;
+    cursor: pointer; background: #fafafa; transition: all 0.2s; text-align: left;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .opcion:hover { border-color: #f57c00; background: #fff3e0; transform: translateX(5px); }
+  .opcion .icono { font-size: 1.5em; }
+  .opcion.correcta { border-color: #28a745; background: #d4edda; }
+  .opcion.incorrecta { border-color: #dc3545; background: #f8d7da; }
+  .opcion:disabled { cursor: default; }
+  .pasos-container {
+    display: flex; flex-direction: column; gap: 10px; margin: 15px 0;
+  }
+  .paso-orden {
+    background: #fff; border: 2px solid #f57c00; border-radius: 12px;
+    padding: 14px 16px; font-size: 1.05em; color: #333;
+    cursor: pointer; display: flex; align-items: center; gap: 10px;
+    transition: all 0.2s; user-select: none;
+  }
+  .paso-orden:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(245,124,0,0.15); }
+  .paso-orden.seleccionado { border-color: #ffc107; background: #fffbe6; }
+  .paso-orden .numero { background: #f57c00; color: #fff; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85em; flex-shrink: 0; }
+  .retroalimentacion {
+    padding: 18px 20px; border-radius: 12px; font-size: 1.1em; margin-top: 15px; font-weight: bold; line-height: 1.5;
+  }
+  .retro-correcta { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+  .retro-incorrecta { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+  .oculto { display: none; }
+  .puntaje { text-align: center; font-size: 1.3em; font-weight: bold; color: #e64a19; margin-top: 15px; }
+  .botones { display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+  button {
+    padding: 14px 28px; font-size: 1.15em; border: none; border-radius: 10px;
+    cursor: pointer; transition: background 0.2s, transform 0.1s; font-weight: 600;
+  }
+  .btn-verificar { background: #28a745; color: #fff; }
+  .btn-verificar:hover { background: #218838; transform: translateY(-2px); }
+  .btn-siguiente { background: #ffc107; color: #333; }
+  .btn-siguiente:hover { background: #e0a800; transform: translateY(-2px); }
+  .btn-reiniciar { background: #6c757d; color: #fff; }
+  .btn-reiniciar:hover { background: #5a6268; transform: translateY(-2px); }
+  .final { text-align: center; padding: 30px; }
+  .final h2 { color: #e64a19; font-size: 2em; }
+  .final .emoji { font-size: 3em; margin: 15px; }
+  .instrucciones {
+    background: #fffbe6; border: 1px solid #ffe58f; border-radius: 10px; padding: 15px; margin-bottom: 20px; font-size: 1.05em; color: #614700;
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <h1>🚀 Misión Digital</h1>
+  <p class="subtitle">Ayuda a Doña Marta a completar su día digital</p>
+
+  <div class="progreso">Reto <span id="nivelActual">1</span> de <span id="totalNiveles">10</span>
+    <div class="progreso-barra"><div class="progreso-fill" id="barra"></div></div>
+  </div>
+
+  <div id="juegoArea">
+    <div class="instrucciones">
+      🧭 <strong>Instrucción:</strong> Cada reto es parte del día de Doña Marta. Ordena pasos o elige la mejor decisión.
+    </div>
+
+    <div class="narrativa" id="narrativa"></div>
+
+    <div class="escenario" id="escenario"></div>
+
+    <div id="areaActividad"></div>
+
+    <div id="retroalimentacion" class="retroalimentacion oculto"></div>
+
+    <div class="botones" id="botones"></div>
+
+    <div class="puntaje">Puntaje: <span id="puntaje">0</span> / <span id="totalPuntaje">10</span></div>
+  </div>
+
+  <div id="pantallaFinal" class="final oculto">
+    <div class="emoji">🏆</div>
+    <h2>¡Misión Digital completada!</h2>
+    <p style="font-size:1.2em; color:#555;">Puntaje final: <strong id="puntajeFinal"></strong></p>
+    <p style="font-size:1.1em; color:#666;">Doña Marta terminó su día gracias a tu ayuda. Ahora tú también sabes hacer todas estas tareas.</p>
+    <button class="btn-reiniciar" onclick="location.reload()" style="margin-top:20px;">🔄 Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const retos = [
+  {
+    tipo: "ordenar",
+    narrativa: "🌅 Mañana: Doña Marta necesita escribir una carta en el computador.",
+    escenario: "👩‍🦳 Ordena los pasos para encender el computador, abrir Word y guardar el documento:",
+    pasos: [
+      { id: 1, texto: "Encender el computador y esperar que cargue el escritorio" },
+      { id: 2, texto: "Buscar y abrir el icono de Word (procesador de textos)" },
+      { id: 3, texto: "Escribir el contenido de la carta" },
+      { id: 4, texto: "Hacer clic en 'Guardar' y ponerle nombre al archivo" },
+      { id: 5, texto: "Elegir la carpeta y confirmar para guardar" }
+    ],
+    correcto: "✅ ¡Excelente! Así se escribe y guarda un documento.",
+    incorrecto: "❌ Recuerde: primero enciende, luego abre Word, escribe, guarda y confirma."
+  },
+  {
+    tipo: "ordenar",
+    narrativa: "📧 Mediodía: Quiere enviar la carta por correo a su hija.",
+    escenario: "👩‍🦳 Ordene los pasos para enviar un correo con archivo adjunto:",
+    pasos: [
+      { id: 1, texto: "Abrir el navegador y entrar al correo electrónico" },
+      { id: 2, texto: "Hacer clic en 'Redactar' o 'Nuevo mensaje'" },
+      { id: 3, texto: "Escribir el correo de su hija en 'Para:' y el asunto" },
+      { id: 4, texto: "Hacer clic en el clip (adjuntar) y buscar el archivo guardado" },
+      { id: 5, texto: "Revisar que el archivo esté adjunto y hacer clic en 'Enviar'" }
+    ],
+    correcto: "✅ ¡Perfecto! Así se envía un documento por correo.",
+    incorrecto: "❌ Recuerde: abrir correo, redactar, poner destinatario, adjuntar archivo, revisar y enviar."
+  },
+  {
+    tipo: "ordenar",
+    narrativa: "🖼️ Tarde: Necesita buscar una foto de flores para la presentación.",
+    escenario: "👩‍🦳 Ordene los pasos para buscar una imagen en Google y guardarla:",
+    pasos: [
+      { id: 1, texto: "Abrir el navegador y entrar a www.google.com" },
+      { id: 2, texto: "Escribir 'fotos de flores' en la barra de búsqueda" },
+      { id: 3, texto: "Hacer clic en 'Imágenes' para ver solo fotos" },
+      { id: 4, texto: "Elegir la imagen que le gusta y hacer clic derecho > 'Guardar imagen como'" },
+      { id: 5, texto: "Elegir la carpeta y confirmar para guardar la foto" }
+    ],
+    correcto: "✅ ¡Muy bien! Así se buscan y guardan imágenes de internet.",
+    incorrecto: "❌ Recuerde: Google, buscar, Imágenes, elegir foto, guardar en carpeta."
+  },
+  {
+    tipo: "multiple",
+    narrativa: "💰 Luego: Quiere saber si le llegó el dinero que le envió su hijo.",
+    escenario: "👩‍🦳 Doña Marta abre Nequi. ¿Dónde revisa si le llegó el dinero?",
+    opciones: [
+      { texto: "En la pantalla principal donde dice 'Saldo disponible' y luego en 'Movimientos'", correcta: true, explicacion: "✅ Correcto. El saldo y los movimientos están en la app oficial. Los mensajes de WhatsApp no son prueba." },
+      { texto: "En un mensaje de WhatsApp que dice 'Le envié plata'", correcta: false, explicacion: "❌ Incorrecto. Un mensaje de WhatsApp no es prueba de pago. Solo la app oficial muestra los movimientos reales." },
+      { texto: "Preguntándole a la vecina si ya le llegó", correcta: false, explicacion: "❌ Incorrecto. La vecina no puede saber su saldo. Revise solo en la app oficial." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    narrativa: "🏦 Después: Quiere enviar $50.000 a su hermana por Bre-B.",
+    escenario: "👩‍🦳 ¿Cuál es el paso MÁS IMPORTANTE antes de confirmar la transferencia?",
+    opciones: [
+      { texto: "Verificar que el nombre del destinatario sea el de su hermana", correcta: true, explicacion: "✅ Correcto. Si el nombre no coincide, la llave puede estar equivocada. Escribir mal un número o correo es muy común. Verifique siempre el destinatario y el valor antes de confirmar." },
+      { texto: "Enviar de inmediato para no demorarse", correcta: false, explicacion: "❌ Incorrecto. La prisa es enemiga de la seguridad. Siempre verifique el nombre antes de enviar." },
+      { texto: "Tomarle foto a la pantalla y enviarla por WhatsApp", correcta: false, explicacion: "❌ Incorrecto. Eso no protege su dinero. Verifique el nombre y el valor antes de confirmar." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    narrativa: "📲 Mientras tanto: Le llega un código de 6 números por mensaje de texto.",
+    escenario: "👩‍🦳 Inmediatamente la llaman por teléfono: 'Soy del banco, dicteme ese código para ayudarla'. ¿Qué hace?",
+    opciones: [
+      { texto: "Cuelga el teléfono. El banco NUNCA pide ese código", correcta: true, explicacion: "✅ Correcto. El código de verificación es solo para usted. Nadie del banco se lo va a pedir por teléfono. Es una estafa." },
+      { texto: "Dicta el código porque la persona suena amable", correcta: false, explicacion: "❌ Incorrecto. Los estafadores suenan muy profesionales. Ese código les permite entrar a su cuenta y robarle." },
+      { texto: "Dicta solo los primeros 3 números", correcta: false, explicacion: "❌ Incorrecto. Nunca comparta ninguna parte del código. Cuelgue y llame a la línea oficial de su banco." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    narrativa: "🌐 Más tarde: Ve un anuncio que dice 'Haga clic aquí y gane un celular nuevo'.",
+    escenario: "👩‍🦳 ¿Qué debe hacer?",
+    opciones: [
+      { texto: "No hacer clic. Si es demasiado bueno para ser verdad, es una estafa", correcta: true, explicacion: "✅ Correcto. Los premios inesperados son trampas. Pueden robar sus datos o infectar su celular." },
+      { texto: "Hacer clic para ver si de verdad gana un celular", correcta: false, explicacion: "❌ Incorrecto. Esos enlaces son peligrosos. Pueden robar sus contraseñas o instalar virus." },
+      { texto: "Compartir el enlace con sus amigos para que también participen", correcta: false, explicacion: "❌ Incorrecto. Nunca comparta enlaces sospechosos. Pone en riesgo a sus contactos." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    narrativa: "📹 Necesita hablar con su hija que vive en otra ciudad y ver a sus nietos.",
+    escenario: "👩‍🦳 ¿Qué app le recomienda usar para hacer una videollamada?",
+    opciones: [
+      { texto: "📹 WhatsApp, Google Meet o Zoom", correcta: true, explicacion: "✅ Correcto. Estas apps permiten videollamadas gratis. Solo necesita conexión a internet." },
+      { texto: "📧 El correo electrónico", correcta: false, explicacion: "❌ Incorrecto. El correo no permite videollamadas en tiempo real." },
+      { texto: "🏦 La app del banco", correcta: false, explicacion: "❌ Incorrecto. La app del banco sirve para dinero, no para videollamadas." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    narrativa: "🤖 Por la noche: Quiere que la IA le ayude a escribir una invitación para el cumpleaños de su nieto.",
+    escenario: "👩‍🦳 ¿Qué puede pedirle a la IA?",
+    opciones: [
+      { texto: "'Ayúdame a redactar una invitación bonita para un cumpleaños infantil'", correcta: true, explicacion: "✅ Correcto. La IA puede ayudar a redactar textos, corregir ortografía y dar ideas. No le dé datos personales." },
+      { texto: "'Aquí está mi contraseña del banco, ¿es segura?'", correcta: false, explicacion: "❌ Incorrecto. NUNCA comparta contraseñas, números de tarjeta ni datos personales con la IA." },
+      { texto: "'Escriba mi número de cédula en la invitación'", correcta: false, explicacion: "❌ Incorrecto. Nunca ponga su cédula en documentos públicos. La IA puede guardar esa información." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    narrativa: "🔒 Antes de dormir: Quiere asegurarse de que su computador esté protegido.",
+    escenario: "👩‍🦳 ¿Cuál de estas es una BUENA práctica de seguridad?",
+    opciones: [
+      { texto: "Cerrar sesión en el correo y el banco cuando termina de usar el computador", correcta: true, explicacion: "✅ Correcto. Cerrar sesión es como poner la cerradura. Especialmente importante en computadores compartidos." },
+      { texto: "Dejar la sesión abierta para no tener que escribir la contraseña mañana", correcta: false, explicacion: "❌ Incorrecto. Si alguien más usa el computador, puede entrar a sus cuentas. Cierre sesión siempre." },
+      { texto: "Escribir la contraseña en un papel pegado al monitor", correcta: false, explicacion: "❌ Incorrecto. Eso es como dejar la llave de la casa en la puerta. Guarde sus contraseñas en un lugar seguro y privado." }
+    ]
+  }
+];
+
+let idx = 0;
+let puntaje = 0;
+const totalPuntaje = retos.length;
+let seleccionadoPaso = null;
+
+function init() {
+  document.getElementById('totalNiveles').textContent = retos.length;
+  document.getElementById('totalPuntaje').textContent = totalPuntaje;
+  mostrarReto();
+}
+
+function mostrarReto() {
+  if (idx >= retos.length) {
+    document.getElementById('juegoArea').classList.add('oculto');
+    document.getElementById('pantallaFinal').classList.remove('oculto');
+    document.getElementById('puntajeFinal').textContent = puntaje + ' / ' + totalPuntaje;
+    return;
+  }
+
+  const r = retos[idx];
+  document.getElementById('nivelActual').textContent = idx + 1;
+  document.getElementById('barra').style.width = ((idx) / retos.length * 100) + '%';
+  document.getElementById('narrativa').textContent = r.narrativa;
+  document.getElementById('escenario').innerHTML = '<span class="persona">👩‍🦳</span>' + r.escenario;
+
+  const area = document.getElementById('areaActividad');
+  area.innerHTML = '';
+  document.getElementById('retroalimentacion').classList.add('oculto');
+  document.getElementById('botones').innerHTML = '';
+
+  if (r.tipo === 'multiple') {
+    const container = document.createElement('div');
+    container.className = 'opciones';
+    r.opciones.forEach((op, i) => {
+      const div = document.createElement('div');
+      div.className = 'opcion';
+      div.textContent = op.texto;
+      div.onclick = () => seleccionarOpcion(i, div);
+      container.appendChild(div);
+    });
+    area.appendChild(container);
+  } else if (r.tipo === 'ordenar') {
+    const mezclados = [...r.pasos].sort(() => Math.random() - 0.5);
+    const container = document.createElement('div');
+    container.className = 'pasos-container';
+    container.id = 'pasosOrden';
+    mezclados.forEach((paso, i) => {
+      const div = document.createElement('div');
+      div.className = 'paso-orden';
+      div.dataset.id = paso.id;
+      div.innerHTML = '<span class="numero">' + (i+1) + '</span><span>' + paso.texto + '</span>';
+      div.onclick = () => seleccionarPasoOrden(div);
+      container.appendChild(div);
+    });
+    area.appendChild(container);
+
+    const btnVer = document.createElement('button');
+    btnVer.className = 'btn-verificar';
+    btnVer.textContent = '✅ Verificar orden';
+    btnVer.onclick = verificarOrdenReto;
+    document.getElementById('botones').appendChild(btnVer);
+  }
+}
+
+function seleccionarOpcion(i, divEl) {
+  const r = retos[idx];
+  const op = r.opciones[i];
+  document.querySelectorAll('.opcion').forEach(b => b.onclick = null);
+
+  if (op.correcta) {
+    divEl.classList.add('correcta');
+    puntaje++;
+    document.getElementById('puntaje').textContent = puntaje;
+  } else {
+    divEl.classList.add('incorrecta');
+    document.querySelectorAll('.opcion').forEach((b, j) => {
+      if (r.opciones[j].correcta) b.classList.add('correcta');
+    });
+  }
+
+  const retro = document.getElementById('retroalimentacion');
+  retro.classList.remove('oculto', 'retro-correcta', 'retro-incorrecta');
+  retro.classList.add(op.correcta ? 'retro-correcta' : 'retro-incorrecta');
+  retro.textContent = op.explicacion;
+
+  const btnSig = document.createElement('button');
+  btnSig.className = 'btn-siguiente';
+  btnSig.textContent = '➡️ Siguiente reto';
+  btnSig.onclick = () => { idx++; mostrarReto(); };
+  document.getElementById('botones').appendChild(btnSig);
+}
+
+function seleccionarPasoOrden(div) {
+  if (!seleccionadoPaso) {
+    seleccionadoPaso = div;
+    div.classList.add('seleccionado');
+  } else if (seleccionadoPaso === div) {
+    div.classList.remove('seleccionado');
+    seleccionadoPaso = null;
+  } else {
+    const container = document.getElementById('pasosOrden');
+    const children = Array.from(container.children);
+    const idx1 = children.indexOf(seleccionadoPaso);
+    const idx2 = children.indexOf(div);
+    if (idx1 < idx2) container.insertBefore(div, seleccionadoPaso);
+    else container.insertBefore(seleccionadoPaso, div);
+    actualizarNumerosOrden();
+    seleccionadoPaso.classList.remove('seleccionado');
+    seleccionadoPaso = null;
+  }
+}
+function actualizarNumerosOrden() {
+  document.querySelectorAll('.paso-orden').forEach((el, i) => {
+    el.querySelector('.numero').textContent = i + 1;
+  });
+}
+function verificarOrdenReto() {
+  const r = retos[idx];
+  const pasos = document.querySelectorAll('.paso-orden');
+  const ids = Array.from(pasos).map(p => parseInt(p.dataset.id));
+  const correcto = r.pasos.map(p => p.id);
+  let correctos = 0;
+  ids.forEach((id, i) => { if (id === correcto[i]) correctos++; });
+
+  const retro = document.getElementById('retroalimentacion');
+  retro.classList.remove('oculto', 'retro-correcta', 'retro-incorrecta');
+  puntaje += (correctos === ids.length ? 1 : 0);
+  document.getElementById('puntaje').textContent = puntaje;
+
+  if (correctos === ids.length) {
+    retro.className = 'retroalimentacion retro-correcta';
+    retro.textContent = r.correcto;
+  } else {
+    retro.className = 'retroalimentacion retro-incorrecta';
+    retro.textContent = r.incorrecto;
+  }
+
+  const btnSig = document.createElement('button');
+  btnSig.className = 'btn-siguiente';
+  btnSig.textContent = '➡️ Siguiente reto';
+  btnSig.onclick = () => { idx++; mostrarReto(); };
+  document.getElementById('botones').innerHTML = '';
+  document.getElementById('botones').appendChild(btnSig);
+}
+
+init();
+</script>
+</body>
+</html>

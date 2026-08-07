@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧭 ¿Dónde lo Encuentro? - Juego 4</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1565c0 0%, #00838f 100%);
+    margin: 0; padding: 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .container {
+    background: #fff; border-radius: 20px;
+    max-width: 900px; width: 100%;
+    padding: 30px 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+  h1 { text-align: center; color: #1565c0; font-size: 2.2em; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; font-size: 1.2em; margin-bottom: 25px; }
+  .progreso {
+    text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555;
+  }
+  .progreso-barra {
+    width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 8px;
+  }
+  .progreso-fill {
+    height: 100%; background: linear-gradient(90deg, #1565c0, #00838f); width: 0%; transition: width 0.5s;
+  }
+  .escenario {
+    background: #e3f2fd; border-left: 5px solid #1565c0;
+    padding: 18px 22px; border-radius: 10px; font-size: 1.2em; margin-bottom: 20px; color: #333;
+  }
+  .opciones { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+  .opcion {
+    padding: 16px 20px; font-size: 1.15em; border: 2px solid #ddd; border-radius: 12px;
+    cursor: pointer; background: #fafafa; transition: all 0.2s; text-align: left;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .opcion:hover { border-color: #1565c0; background: #e3f2fd; transform: translateX(5px); }
+  .opcion .icono { font-size: 1.6em; }
+  .opcion.correcta { border-color: #28a745; background: #d4edda; }
+  .opcion.incorrecta { border-color: #dc3545; background: #f8d7da; }
+  .opcion:disabled { cursor: default; }
+  .retroalimentacion {
+    padding: 18px 20px; border-radius: 12px; font-size: 1.1em; margin-top: 15px; font-weight: bold; line-height: 1.5;
+  }
+  .retro-correcta { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+  .retro-incorrecta { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+  .oculto { display: none; }
+  .puntaje { text-align: center; font-size: 1.3em; font-weight: bold; color: #1565c0; margin-top: 15px; }
+  .botones { display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+  button {
+    padding: 14px 28px; font-size: 1.15em; border: none; border-radius: 10px;
+    cursor: pointer; transition: background 0.2s, transform 0.1s; font-weight: 600;
+  }
+  .btn-siguiente { background: #ffc107; color: #333; }
+  .btn-siguiente:hover { background: #e0a800; transform: translateY(-2px); }
+  .btn-reiniciar { background: #6c757d; color: #fff; }
+  .btn-reiniciar:hover { background: #5a6268; transform: translateY(-2px); }
+  .final { text-align: center; padding: 30px; }
+  .final h2 { color: #1565c0; font-size: 2em; }
+  .final .emoji { font-size: 3em; margin: 15px; }
+  .instrucciones {
+    background: #fffbe6; border: 1px solid #ffe58f; border-radius: 10px; padding: 15px; margin-bottom: 20px; font-size: 1.05em; color: #614700;
+  }
+  .apps-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 15px 0;
+  }
+  .app-card {
+    background: #fff; border: 2px solid #ddd; border-radius: 12px; padding: 15px; text-align: center;
+    cursor: pointer; transition: all 0.2s; font-size: 0.95em;
+  }
+  .app-card:hover { border-color: #1565c0; background: #e3f2fd; transform: translateY(-3px); }
+  .app-card .app-icon { font-size: 2.2em; display: block; margin-bottom: 8px; }
+  .app-card.correcta { border-color: #28a745; background: #d4edda; }
+  .app-card.incorrecta { border-color: #dc3545; background: #f8d7da; }
+  .app-card:disabled { cursor: default; }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <h1>🧭 ¿Dónde lo Encuentro?</h1>
+  <p class="subtitle">Aprende qué app usar para cada necesidad y cómo proteger tu privacidad</p>
+
+  <div class="progreso">Reto <span id="nivelActual">1</span> de <span id="totalNiveles">10</span>
+    <div class="progreso-barra"><div class="progreso-fill" id="barra"></div></div>
+  </div>
+
+  <div id="juegoArea">
+    <div class="instrucciones">
+      📱 <strong>Instrucción:</strong> Lee cada situación y elige la mejor app o la decisión más segura. Piensa: ¿qué necesito y dónde lo hago?
+    </div>
+
+    <div class="escenario" id="escenario"></div>
+
+    <div id="areaActividad"></div>
+
+    <div id="retroalimentacion" class="retroalimentacion oculto"></div>
+
+    <div class="botones" id="botones"></div>
+
+    <div class="puntaje">Puntaje: <span id="puntaje">0</span> / <span id="totalPuntaje">10</span></div>
+  </div>
+
+  <div id="pantallaFinal" class="final oculto">
+    <div class="emoji">🏆</div>
+    <h2>¡Felicitaciones! Has completado ¿Dónde lo Encuentro?</h2>
+    <p style="font-size:1.2em; color:#555;">Puntaje final: <strong id="puntajeFinal"></strong></p>
+    <p style="font-size:1.1em; color:#666;">Ahora sabes qué app usar para cada necesidad y cómo proteger tu información personal.</p>
+    <button class="btn-reiniciar" onclick="location.reload()" style="margin-top:20px;">🔄 Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const retos = [
+  {
+    tipo: "multiple",
+    escenario: "Doña Marta quiere ver fotos y videos de sus nietos. ¿Qué app le recomienda usar?",
+    opciones: [
+      { texto: "📘 Facebook", correcta: true, explicacion: "✅ Correcto. Facebook es ideal para conectar con familiares y ver fotos. También puede usar WhatsApp para recibirlas directamente." },
+      { texto: "💼 LinkedIn", correcta: false, explicacion: "❌ Incorrecto. LinkedIn es para empleo y contactos profesionales, no para compartir fotos familiares." },
+      { texto: "🧾 Excel", correcta: false, explicacion: "❌ Incorrecto. Excel es para tablas y números, no para ver fotos." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    escenario: "Don Carlos quiere ver una película tranquila en la noche. ¿Dónde la encuentra?",
+    opciones: [
+      { texto: "📺 Netflix, Disney+, Amazon Prime o YouTube", correcta: true, explicacion: "✅ Correcto. Estas apps tienen películas y series. Muchas tienen planes económicos o contenido gratis." },
+      { texto: "🗺️ Google Maps", correcta: false, explicacion: "❌ Incorrecto. Google Maps sirve para encontrar direcciones, no para ver películas." },
+      { texto: "📧 El correo electrónico", correcta: false, explicacion: "❌ Incorrecto. El correo sirve para enviar mensajes, no para ver películas." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    escenario: "Doña Elena está enferma y quiere saber si el hospital más cercano está abierto. ¿Qué app usa?",
+    opciones: [
+      { texto: "🗺️ Google Maps", correcta: true, explicacion: "✅ Correcto. Google Maps muestra hospitales, farmacias y horarios cercanos a su ubicación." },
+      { texto: "🎵 Spotify", correcta: false, explicacion: "❌ Incorrecto. Spotify es para escuchar música, no para buscar hospitales." },
+      { texto: "🛒 Rappi", correcta: false, explicacion: "❌ Incorrecto. Rappi sirve para pedir domicilios de comida y mercado, no para buscar hospitales." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    escenario: "Don José quiere saber cuándo es el siguiente partido del fútbol colombiano. ¿Dónde busca?",
+    opciones: [
+      { texto: "📲 Google, ESPN o la app de su equipo favorito", correcta: true, explicacion: "✅ Correcto. En Google puede buscar 'partido hoy' o usar apps deportivas como ESPN." },
+      { texto: "🏦 La app del banco", correcta: false, explicacion: "❌ Incorrecto. La app del banco solo muestra dinero y movimientos, no resultados deportivos." },
+      { texto: "📄 Word", correcta: false, explicacion: "❌ Incorrecto. Word es para escribir documentos, no para buscar información de internet." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    escenario: "María quiere aprender a cocinar un plato nuevo con video. ¿Dónde busca?",
+    opciones: [
+      { texto: "▶️ YouTube", correcta: true, explicacion: "✅ Correcto. YouTube tiene millones de videos de recetas de cocina paso a paso." },
+      { texto: "💼 LinkedIn", correcta: false, explicacion: "❌ Incorrecto. LinkedIn es para trabajo y contactos profesionales." },
+      { texto: "🏦 La app del banco", correcta: false, explicacion: "❌ Incorrecto. La app del banco no tiene recetas de cocina." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    escenario: "Doña Rosa quiere saber cuánto le cobran de impuestos en su recibo de luz. ¿Dónde revisa?",
+    opciones: [
+      { texto: "📧 En el correo electrónico donde le llegó la factura, o en la app de la empresa de energía", correcta: true, explicacion: "✅ Correcto. La factura detalla los impuestos. También puede usar la app de su empresa de energía para ver el desglose." },
+      { texto: "🎵 Spotify", correcta: false, explicacion: "❌ Incorrecto. Spotify no tiene información de su factura de servicios." },
+      { texto: "📘 Facebook", correcta: false, explicacion: "❌ Incorrecto. Facebook no muestra su factura de luz." }
+    ]
+  },
+  {
+    tipo: "multiple",
+    escenario: "Don Pedro quiere pedir una pizza a domicilio. ¿Qué app le sirve?",
+    opciones: [
+      { texto: "🛒 Rappi, iFood, Uber Eats o la app de la pizzería", correcta: true, explicacion: "✅ Correcto. Estas apps permiten pedir comida a domicilio. También puede llamar directamente por teléfono." },
+      { texto: "📘 Facebook", correcta: false, explicacion: "❌ Incorrecto. Facebook no sirve para pedir domicilios de comida." },
+      { texto: "🏦 La app del banco", correcta: false, explicacion: "❌ Incorrecto. La app del banco sirve para dinero, no para pedir comida." }
+    ]
+  },
+  {
+    tipo: "privacidad",
+    escenario: "María subió una foto a Facebook con su dirección completa visible en el letrero de la casa. ¿Qué hace?",
+    opciones: [
+      { texto: "Borra la foto y sube otra sin información personal visible", correcta: true, explicacion: "✅ Correcto. Nunca comparta su dirección exacta, número de celular o documento en redes públicas. Puede poner en riesgo su seguridad." },
+      { texto: "Dejar la foto porque solo la ven sus amigos", correcta: false, explicacion: "❌ Incorrecto. Aunque sean amigos, los datos personales pueden filtrarse. Borre y suba una foto sin información sensible." },
+      { texto: "Etiquetar a más personas para que vean su casa", correcta: false, explicacion: "❌ Incorrecto. Etiquetar más personas solo difunde más la información personal." }
+    ]
+  },
+  {
+    tipo: "privacidad",
+    escenario: "Don Carlos recibió un enlace que dice 'Mire quién visitó su perfil de Facebook'. ¿Qué hace?",
+    opciones: [
+      { texto: "No hacer clic. Facebook nunca muestra quién visita su perfil", correcta: true, explicacion: "✅ Correcto. Esos enlaces son estafas. Facebook NO muestra quién visita su perfil. El enlace puede robar su cuenta." },
+      { texto: "Hacer clic para ver si es verdad, no pierde nada", correcta: false, explicacion: "❌ Incorrecto. Solo con hacer clic pueden instalar virus o robar su contraseña de Facebook." },
+      { texto: "Compartir el enlace con sus amigos para que también lo vean", correcta: false, explicacion: "❌ Incorrecto. Compartir la estafa pone en riesgo a todos sus contactos." }
+    ]
+  },
+  {
+    tipo: "privacidad",
+    escenario: "Doña Elena quiere poner una foto de perfil en WhatsApp. ¿Cuál es la opción más segura?",
+    opciones: [
+      { texto: "Una foto suya de frente, sin mostrar documentos ni datos personales", correcta: true, explicacion: "✅ Correcto. Una foto de perfil normal es suficiente. Nunca muestre su cédula, dirección o tarjetas bancarias." },
+      { texto: "Una foto donde se ve su cédula para que la gente sepa que es ella", correcta: false, explicacion: "❌ Incorrecto. Mostrar su cédula en redes permite que la roben su identidad. Nunca lo haga." },
+      { texto: "Una foto con su tarjeta bancaria para demostrar que es real", correcta: false, explicacion: "🔴 MUY PELIGROSO. Con los números de la tarjeta los estafadores pueden robarle dinero." }
+    ]
+  }
+];
+
+let idx = 0;
+let puntaje = 0;
+const totalPuntaje = retos.length;
+
+function init() {
+  document.getElementById('totalNiveles').textContent = retos.length;
+  document.getElementById('totalPuntaje').textContent = totalPuntaje;
+  mostrarReto();
+}
+
+function mostrarReto() {
+  if (idx >= retos.length) {
+    document.getElementById('juegoArea').classList.add('oculto');
+    document.getElementById('pantallaFinal').classList.remove('oculto');
+    document.getElementById('puntajeFinal').textContent = puntaje + ' / ' + totalPuntaje;
+    return;
+  }
+
+  const r = retos[idx];
+  document.getElementById('nivelActual').textContent = idx + 1;
+  document.getElementById('barra').style.width = ((idx) / retos.length * 100) + '%';
+  document.getElementById('escenario').textContent = r.escenario;
+
+  const area = document.getElementById('areaActividad');
+  area.innerHTML = '';
+  document.getElementById('retroalimentacion').classList.add('oculto');
+  document.getElementById('botones').innerHTML = '';
+
+  const container = document.createElement('div');
+  container.className = 'opciones';
+  r.opciones.forEach((op, i) => {
+    const div = document.createElement('div');
+    div.className = 'opcion';
+    div.textContent = op.texto;
+    div.onclick = () => seleccionarOpcion(i, div);
+    container.appendChild(div);
+  });
+  area.appendChild(container);
+}
+
+function seleccionarOpcion(i, divEl) {
+  const r = retos[idx];
+  const op = r.opciones[i];
+  document.querySelectorAll('.opcion').forEach(b => b.onclick = null);
+
+  if (op.correcta) {
+    divEl.classList.add('correcta');
+    puntaje++;
+    document.getElementById('puntaje').textContent = puntaje;
+  } else {
+    divEl.classList.add('incorrecta');
+    document.querySelectorAll('.opcion').forEach((b, j) => {
+      if (r.opciones[j].correcta) b.classList.add('correcta');
+    });
+  }
+
+  const retro = document.getElementById('retroalimentacion');
+  retro.classList.remove('oculto', 'retro-correcta', 'retro-incorrecta');
+  retro.classList.add(op.correcta ? 'retro-correcta' : 'retro-incorrecta');
+  retro.textContent = op.explicacion;
+
+  const btnSig = document.createElement('button');
+  btnSig.className = 'btn-siguiente';
+  btnSig.textContent = '➡️ Siguiente reto';
+  btnSig.onclick = () => { idx++; mostrarReto(); };
+  document.getElementById('botones').appendChild(btnSig);
+}
+
+init();
+</script>
+</body>
+</html>

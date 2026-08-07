@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💻 Mi Oficina Digital - Juego 1</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0; padding: 20px;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .container {
+    background: #fff; border-radius: 20px;
+    max-width: 900px; width: 100%;
+    padding: 30px 40px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  }
+  h1 { text-align: center; color: #4a3f8c; font-size: 2.2em; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; font-size: 1.2em; margin-bottom: 25px; }
+  .nivel-info {
+    background: #f0f4ff; border-left: 5px solid #667eea;
+    padding: 15px 20px; border-radius: 10px;
+    font-size: 1.1em; margin-bottom: 20px; color: #333;
+  }
+  .pasos-container {
+    display: flex; flex-direction: column; gap: 12px; margin: 20px 0;
+  }
+  .paso {
+    background: #fff; border: 2px solid #667eea; border-radius: 12px;
+    padding: 18px 20px; font-size: 1.15em; color: #333;
+    cursor: grab; display: flex; align-items: center; gap: 15px;
+    transition: transform 0.2s, box-shadow 0.2s; user-select: none;
+  }
+  .paso:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(102,126,234,0.2); }
+  .paso .numero {
+    background: #667eea; color: #fff; width: 36px; height: 36px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1em; flex-shrink: 0;
+  }
+  .paso.dragging { opacity: 0.5; transform: scale(1.02); }
+  .botones {
+    display: flex; gap: 15px; justify-content: center; margin-top: 25px; flex-wrap: wrap;
+  }
+  button {
+    padding: 14px 28px; font-size: 1.15em; border: none; border-radius: 10px;
+    cursor: pointer; transition: background 0.2s, transform 0.1s; font-weight: 600;
+  }
+  .btn-verificar { background: #28a745; color: #fff; }
+  .btn-verificar:hover { background: #218838; transform: translateY(-2px); }
+  .btn-reiniciar { background: #6c757d; color: #fff; }
+  .btn-reiniciar:hover { background: #5a6268; transform: translateY(-2px); }
+  .btn-siguiente { background: #ffc107; color: #333; }
+  .btn-siguiente:hover { background: #e0a800; transform: translateY(-2px); }
+  .resultado {
+    text-align: center; padding: 20px; border-radius: 12px; font-size: 1.2em; margin-top: 20px; font-weight: bold;
+  }
+  .correcto { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+  .incorrecto { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+  .puntaje {
+    text-align: center; font-size: 1.3em; font-weight: bold; color: #4a3f8c; margin-top: 15px;
+  }
+  .emoji-grande { font-size: 2em; }
+  .progreso {
+    text-align: center; margin-bottom: 20px; font-size: 1.1em; color: #555;
+  }
+  .progreso-barra {
+    width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-top: 8px;
+  }
+  .progreso-fill {
+    height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.5s;
+  }
+  .instrucciones {
+    background: #fffbe6; border: 1px solid #ffe58f; border-radius: 10px; padding: 15px; margin-bottom: 20px; font-size: 1.05em; color: #614700;
+  }
+  .oculto { display: none; }
+  .final { text-align: center; padding: 30px; }
+  .final h2 { color: #4a3f8c; font-size: 2em; }
+  .final .estrella { font-size: 3em; margin: 15px; }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <h1>💻 Mi Oficina Digital</h1>
+  <p class="subtitle">Ordena los pasos para completar cada tarea del día a día</p>
+
+  <div class="progreso">Nivel <span id="nivelActual">1</span> de <span id="totalNiveles">5</span>
+    <div class="progreso-barra"><div class="progreso-fill" id="barra"></div></div>
+  </div>
+
+  <div id="juegoArea">
+    <div class="instrucciones">
+      📋 <strong>Instrucción:</strong> Toca dos veces para intercambiar pasos (primero toca uno, luego otro). ¡El primer paso debe ir arriba!
+    </div>
+
+    <div class="nivel-info" id="nivelInfo"></div>
+
+    <div class="pasos-container" id="pasosContainer"></div>
+
+    <div class="botones">
+      <button class="btn-verificar" onclick="verificarOrden()">✅ Verificar orden</button>
+      <button class="btn-reiniciar" onclick="reiniciarNivel()">🔄 Reiniciar nivel</button>
+    </div>
+
+    <div id="resultado" class="resultado oculto"></div>
+    <div class="puntaje">Puntaje: <span id="puntaje">0</span> / <span id="totalPuntaje">0</span></div>
+  </div>
+
+  <div id="pantallaFinal" class="final oculto">
+    <div class="estrella">🏆</div>
+    <h2>¡Felicitaciones! Has completado Mi Oficina Digital</h2>
+    <p style="font-size:1.2em; color:#555;">Puntaje final: <strong id="puntajeFinal"></strong></p>
+    <p style="font-size:1.1em; color:#666;">Ahora sabes cómo ordenar las tareas en el computador: encender, usar Word, guardar, enviar correos y buscar imágenes.</p>
+    <button class="btn-reiniciar" onclick="location.reload()" style="margin-top:20px;">🔄 Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+const niveles = [
+  {
+    titulo: "📄 Crear un documento y guardarlo",
+    descripcion: "Doña Marta necesita escribir una carta y guardarla en el computador. ¿Cuál es el orden correcto?",
+    pasos: [
+      { id: 1, texto: "Encender el computador y esperar que abra el escritorio" },
+      { id: 2, texto: "Abrir el programa Word (procesador de textos)" },
+      { id: 3, texto: "Escribir el contenido de la carta" },
+      { id: 4, texto: "Clic en 'Guardar' y elegir el nombre del archivo" },
+      { id: 5, texto: "Elegir la carpeta donde se va a guardar y confirmar" }
+    ]
+  },
+  {
+    titulo: "📧 Enviar un documento por correo electrónico",
+    descripcion: "Don Carlos quiere enviar por correo la carta que guardó. ¿Cómo lo hace?",
+    pasos: [
+      { id: 1, texto: "Abrir el navegador y entrar al correo electrónico" },
+      { id: 2, texto: "Clic en 'Redactar' o 'Nuevo mensaje'" },
+      { id: 3, texto: "Escribir el correo del destinatario en 'Para:'" },
+      { id: 4, texto: "Escribir el asunto del mensaje" },
+      { id: 5, texto: "Clic en el botón de adjuntar (icono de clip) y buscar el archivo" },
+      { id: 6, texto: "Clic en 'Enviar' y esperar confirmación" }
+    ]
+  },
+  {
+    titulo: "🖼️ Buscar una imagen, guardarla y enviarla",
+    descripcion: "María necesita enviar una foto de un ejercicio por WhatsApp Web. ¿Cuál es el orden?",
+    pasos: [
+      { id: 1, texto: "Abrir el navegador y entrar a Google" },
+      { id: 2, texto: "Escribir lo que se quiere buscar en la barra de búsqueda" },
+      { id: 3, texto: "Clic en 'Imágenes' para ver solo fotos" },
+      { id: 4, texto: "Elegir la imagen adecuada y guardarla en el computador" },
+      { id: 5, texto: "Abrir WhatsApp Web en el navegador" },
+      { id: 6, texto: "Buscar el contacto y adjuntar la imagen guardada" },
+      { id: 7, texto: "Escribir un mensaje y enviar la foto" }
+    ]
+  },
+  {
+    titulo: "🖨️ Imprimir un documento que ya escribió",
+    descripcion: "Doña Elena ya terminó su carta en Word. ¿Cuáles son los pasos para imprimirla?",
+    pasos: [
+      { id: 1, texto: "Asegurarse de que la impresora esté encendida y conectada" },
+      { id: 2, texto: "En Word, hacer clic en 'Archivo' y luego en 'Imprimir'" },
+      { id: 3, texto: "Revisar que la impresora correcta esté seleccionada" },
+      { id: 4, texto: "Elegir cuántas copias quiere imprimir" },
+      { id: 5, texto: "Hacer clic en 'Imprimir' y esperar a que salga el papel" }
+    ]
+  },
+  {
+    titulo: "📂 Encontrar un archivo que guardó hace días",
+    descripcion: "Don José no recuerda dónde guardó un documento. ¿Cómo lo encuentra?",
+    pasos: [
+      { id: 1, texto: "Hacer clic en el botón de Inicio o en el icono de búsqueda" },
+      { id: 2, texto: "Escribir el nombre del archivo que busca" },
+      { id: 3, texto: "Esperar a que el computador muestre los resultados" },
+      { id: 4, texto: "Hacer clic en el archivo correcto para abrirlo" }
+    ]
+  }
+];
+
+let nivel = 0;
+let puntaje = 0;
+let totalPuntaje = 0;
+let pasoSeleccionado = null;
+
+function init() {
+  document.getElementById('totalNiveles').textContent = niveles.length;
+  mostrarNivel();
+}
+
+function mostrarNivel() {
+  if (nivel >= niveles.length) {
+    document.getElementById('juegoArea').classList.add('oculto');
+    document.getElementById('pantallaFinal').classList.remove('oculto');
+    document.getElementById('puntajeFinal').textContent = puntaje + ' / ' + totalPuntaje;
+    return;
+  }
+
+  const n = niveles[nivel];
+  document.getElementById('nivelActual').textContent = nivel + 1;
+  document.getElementById('nivelInfo').innerHTML = '<strong>' + n.titulo + '</strong><br>' + n.descripcion;
+  document.getElementById('resultado').classList.add('oculto');
+  document.getElementById('barra').style.width = ((nivel) / niveles.length * 100) + '%';
+
+  // Limpiar botón siguiente si existe
+  const btnSig = document.getElementById('btnSig');
+  if (btnSig) btnSig.remove();
+
+  // Mezclar pasos aleatoriamente
+  const mezclados = [...n.pasos].sort(() => Math.random() - 0.5);
+
+  const container = document.getElementById('pasosContainer');
+  container.innerHTML = '';
+
+  mezclados.forEach((paso, idx) => {
+    const div = document.createElement('div');
+    div.className = 'paso';
+    div.draggable = true;
+    div.dataset.id = paso.id;
+    div.dataset.idx = idx;
+    div.innerHTML = '<span class="numero">' + (idx + 1) + '</span><span>' + paso.texto + '</span>';
+    div.addEventListener('dragstart', dragStart);
+    div.addEventListener('dragover', dragOver);
+    div.addEventListener('drop', drop);
+    div.addEventListener('dragenter', dragEnter);
+    div.addEventListener('dragleave', dragLeave);
+    div.addEventListener('click', () => seleccionarPaso(div));
+    container.appendChild(div);
+  });
+
+  totalPuntaje += n.pasos.length;
+  document.getElementById('totalPuntaje').textContent = totalPuntaje;
+  pasoSeleccionado = null;
+}
+
+function seleccionarPaso(div) {
+  if (!pasoSeleccionado) {
+    pasoSeleccionado = div;
+    div.style.borderColor = '#ffc107';
+    div.style.background = '#fffbe6';
+  } else if (pasoSeleccionado === div) {
+    pasoSeleccionado.style.borderColor = '#667eea';
+    pasoSeleccionado.style.background = '#fff';
+    pasoSeleccionado = null;
+  } else {
+    const container = document.getElementById('pasosContainer');
+    const children = Array.from(container.children);
+    const idx1 = children.indexOf(pasoSeleccionado);
+    const idx2 = children.indexOf(div);
+    if (idx1 < idx2) {
+      container.insertBefore(div, pasoSeleccionado);
+    } else {
+      container.insertBefore(pasoSeleccionado, div);
+    }
+    actualizarNumeros();
+    pasoSeleccionado.style.borderColor = '#667eea';
+    pasoSeleccionado.style.background = '#fff';
+    pasoSeleccionado = null;
+  }
+}
+
+let dragSrcEl = null;
+function dragStart(e) { dragSrcEl = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; }
+function dragEnter(e) { this.style.borderColor = '#ffc107'; }
+function dragLeave(e) { this.style.borderColor = '#667eea'; }
+function drop(e) {
+  e.stopPropagation();
+  if (dragSrcEl !== this) {
+    const container = document.getElementById('pasosContainer');
+    const children = Array.from(container.children);
+    const idx1 = children.indexOf(dragSrcEl);
+    const idx2 = children.indexOf(this);
+    if (idx1 < idx2) {
+      container.insertBefore(this, dragSrcEl);
+    } else {
+      container.insertBefore(dragSrcEl, this);
+    }
+    actualizarNumeros();
+  }
+  this.style.borderColor = '#667eea';
+  dragSrcEl.classList.remove('dragging');
+  return false;
+}
+
+function actualizarNumeros() {
+  document.querySelectorAll('.paso').forEach((el, i) => {
+    el.querySelector('.numero').textContent = i + 1;
+    el.dataset.idx = i;
+  });
+}
+
+function verificarOrden() {
+  const pasos = document.querySelectorAll('.paso');
+  const ids = Array.from(pasos).map(p => parseInt(p.dataset.id));
+  const correcto = niveles[nivel].pasos.map(p => p.id);
+  const resultado = document.getElementById('resultado');
+  resultado.classList.remove('oculto');
+
+  let correctos = 0;
+  ids.forEach((id, i) => { if (id === correcto[i]) correctos++; });
+
+  if (correctos === ids.length) {
+    resultado.className = 'resultado correcto';
+    resultado.innerHTML = '<span class="emoji-grande">🎉</span> ¡Perfecto! Ordenaste todos los pasos correctamente.';
+    puntaje += correctos;
+    document.getElementById('puntaje').textContent = puntaje;
+
+    const btns = document.querySelector('.botones');
+    if (!document.getElementById('btnSig')) {
+      const btn = document.createElement('button');
+      btn.id = 'btnSig';
+      btn.className = 'btn-siguiente';
+      btn.textContent = '➡️ Siguiente nivel';
+      btn.onclick = () => { nivel++; mostrarNivel(); };
+      btns.appendChild(btn);
+    }
+  } else {
+    resultado.className = 'resultado incorrecto';
+    resultado.innerHTML = '<span class="emoji-grande">🤔</span> Tienes ' + (ids.length - correctos) + ' paso(s) en el orden incorrecto. ¡Intenta de nuevo!';
+  }
+}
+
+function reiniciarNivel() {
+  totalPuntaje -= niveles[nivel].pasos.length;
+  mostrarNivel();
+}
+
+init();
+</script>
+</body>
+</html>
