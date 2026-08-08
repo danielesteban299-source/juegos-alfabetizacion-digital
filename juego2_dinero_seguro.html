@@ -397,8 +397,7 @@ function seleccionarPasoOrden(div) {
     actualizarNumerosOrden();
   });
 }
- div.addEventListener('dragover', function(e) {
-    e.preventDefault();
+ e.preventDefault();
 
     if (!arrastrando || arrastrando === div) return;
 
