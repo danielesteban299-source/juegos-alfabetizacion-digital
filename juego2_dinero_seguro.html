@@ -283,7 +283,7 @@ function mostrarReto() {
     r.opciones.forEach((op, i) => {
       const div = document.createElement('div');
       div.className = 'opcion';
-      div.innerHTML = '<span class="icono">🔘</span> ' + op.texto;
+      div.innerHTML = '<span class="icono">❓</span> ' + op.texto;
       div.onclick = () => seleccionarOpcion(i, div);
       container.appendChild(div);
     });
