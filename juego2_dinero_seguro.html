@@ -373,8 +373,13 @@ function seleccionarPasoOrden(div) {
     const children = Array.from(container.children);
     const idx1 = children.indexOf(seleccionadoPaso);
     const idx2 = children.indexOf(div);
-    if (idx1 < idx2) container.insertBefore(div, seleccionadoPaso);
-    else container.insertBefore(seleccionadoPaso, div);
+
+    if (idx1 < idx2) {
+      container.insertBefore(div, seleccionadoPaso);
+    } else {
+      container.insertBefore(seleccionadoPaso, div);
+    }
+
     actualizarNumerosOrden();
     seleccionadoPaso.classList.remove('seleccionado');
     seleccionadoPaso = null;
