@@ -118,23 +118,42 @@
       🧠 <strong>Instrucción:</strong> Lee con calma cada situación. Imagina que te está pasando a ti. Elige la opción que proteja tu dinero.
     </div>
 
-    <div style="text-align:center; margin-bottom:15px;">
-      <span class="banco-badge badge-saldo">💰 Saldo</span>
-      <span class="banco-badge badge-breb">🏦 Bre-B</span>
-      <span class="banco-badge badge-nequi">📱 Nequi</span>
-      <span class="banco-badge badge-daviplata">📲 Daviplata</span>
-    </div>
+    <div id="juegoArea">
 
-    <div class="escenario" id="escenario"></div>
-
-    <div id="areaActividad"></div>
-
-    <div id="retroalimentacion" class="retroalimentacion oculto"></div>
-
-    <div class="botones" id="botones"></div>
-
-    <div class="puntaje">Puntaje: <span id="puntaje">0</span> / <span id="totalPuntaje">8</span></div>
+  <div style="text-align:center; margin-bottom:15px;">
+    <span class="banco-badge badge-saldo">💰 Saldo</span>
+    <span class="banco-badge badge-breb">🏦 Bre-B</span>
+    <span class="banco-badge badge-nequi">📱 Nequi</span>
+    <span class="banco-badge badge-daviplata">📲 Daviplata</span>
   </div>
+
+  <div class="progreso">
+    Reto <span id="nivelActual">1</span> de <span id="totalNiveles">8</span>
+    <div class="barra-fondo">
+      <div id="barra" class="barra"></div>
+    </div>
+  </div>
+
+  <div class="escenario" id="escenario"></div>
+
+  <div id="areaActividad"></div>
+
+  <div id="retroalimentacion" class="retroalimentacion oculto"></div>
+
+  <div class="botones" id="botones"></div>
+
+  <div class="puntaje">
+    Puntaje: <span id="puntaje">0</span> /
+    <span id="totalPuntaje">8</span>
+  </div>
+
+</div>
+
+<div id="pantallaFinal" class="oculto">
+  <h2>🎉 ¡Juego terminado!</h2>
+  <p>Tu puntaje fue:</p>
+  <div id="puntajeFinal"></div>
+</div>  </div>
 
   <div id="pantallaFinal" class="final oculto">
     <div class="emoji">🏆</div>
