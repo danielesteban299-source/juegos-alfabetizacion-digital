@@ -290,29 +290,50 @@ function mostrarReto() {
     area.appendChild(container);
   }
   else if (r.tipo === 'ordenar') {
-    const mezclados = [...r.pasos].sort(() => Math.random() - 0.5);
-    const container = document.createElement('div');
-    container.className = 'pasos-container';
-    container.id = 'pasosOrden';
-    mezclados.forEach((paso, i) => {
-      const div = document.createElement('div');
-      div.className = 'paso-orden';
-      div.dataset.id = paso.id;
-      div.innerHTML = '<span class="numero">' + (i+1) + '</span><span>' + paso.texto + '</span>';
-      div.onclick = () => seleccionarPasoOrden(div);
-      container.appendChild(div);
-    });
-    area.appendChild(container);
 
-    const btnVer = document.createElement('button');
-    btnVer.className = 'btn-verificar';
-    btnVer.textContent = '✅ Verificar orden';
-    btnVer.onclick = verificarOrdenReto;
-    document.getElementById('botones').appendChild(btnVer);
-  }
+  const mezclados = [...r.pasos].sort(() => Math.random() - 0.5);
+
+  const container = document.createElement('div');
+  container.className = 'pasos-container';
+  container.id = 'pasosOrden';
+
+  const instruccion = document.createElement('div');
+  instruccion.style.textAlign = 'center';
+  instruccion.style.fontSize = '1.1em';
+  instruccion.style.fontWeight = 'bold';
+  instruccion.style.marginBottom = '15px';
+  instruccion.textContent =
+    '👆 Toca un paso y luego otro para intercambiarlos.';
+
+  area.appendChild(instruccion);
+
+  mezclados.forEach((paso, i) => {
+
+    const div = document.createElement('div');
+
+    div.className = 'paso-orden';
+    div.dataset.id = paso.id;
+
+    div.innerHTML =
+      '<span class="numero">' + (i + 1) + '</span>' +
+      '<span>' + paso.texto + '</span>';
+
+    div.onclick = () => seleccionarPasoOrden(div);
+
+    container.appendChild(div);
+  });
+
+  area.appendChild(container);
+
+  const btnVer = document.createElement('button');
+
+  btnVer.className = 'btn-verificar';
+  btnVer.textContent = '✅ Verificar orden';
+  btnVer.onclick = verificarOrdenReto;
+
+  document.getElementById('botones').appendChild(btnVer);
 }
-
-function seleccionarOpcion(i, divEl) {
+ function seleccionarOpcion(i, divEl) {
   const r = retos[idx];
   const op = r.opciones[i];
   document.querySelectorAll('.opcion').forEach(b => b.onclick = null);
