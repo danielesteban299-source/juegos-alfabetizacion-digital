@@ -362,23 +362,42 @@ function mostrarReto() {
 }
 
 function seleccionarPasoOrden(div) {
-  let arrastrando = null;
-
   div.draggable = true;
 
   div.addEventListener('dragstart', function(e) {
-    arrastrando = div;
     div.classList.add('arrastrando');
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', '');
+    window.pasoArrastrado = div;
   });
 
   div.addEventListener('dragend', function() {
     div.classList.remove('arrastrando');
-    arrastrando = null;
+    window.pasoArrastrado = null;
     actualizarNumerosOrden();
   });
 
   div.addEventListener('dragover', function(e) {
+    e.preventDefault();
+
+    const arrastrado = window.pasoArrastrado;
+
+    if (!arrastrado || arrastrado === div) return;
+
+    const container = document.getElementById('pasosOrden');
+    const rect = div.getBoundingClientRect();
+    const mitad = rect.top + rect.height / 2;
+
+    if (e.clientY < mitad) {
+      container.insertBefore(arrastrado, div);
+    } else {
+      container.insertBefore(arrastrado, div.nextSibling);
+    }
+
+    actualizarNumerosOrden();
+  });
+}
+ div.addEventListener('dragover', function(e) {
     e.preventDefault();
 
     if (!arrastrando || arrastrando === div) return;
