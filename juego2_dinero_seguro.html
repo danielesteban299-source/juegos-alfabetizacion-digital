@@ -303,7 +303,7 @@ function mostrarReto() {
   instruccion.style.fontWeight = 'bold';
   instruccion.style.marginBottom = '15px';
   instruccion.textContent =
-    '👆 Toca un paso y luego otro para intercambiarlos.';
+'👆 Arrastra los pasos para colocarlos en el orden correcto.';
 
   area.appendChild(instruccion);
 
@@ -318,7 +318,7 @@ function mostrarReto() {
       '<span class="numero">' + (i + 1) + '</span>' +
       '<span>' + paso.texto + '</span>';
 
-    div.onclick = () => seleccionarPasoOrden(div);
+    seleccionarPasoOrden(div);
 
     container.appendChild(div);
   });
@@ -362,26 +362,39 @@ function mostrarReto() {
 }
 
 function seleccionarPasoOrden(div) {
-  if (!seleccionadoPaso) {
-    seleccionadoPaso = div;
-    div.classList.add('seleccionado');
-  } else if (seleccionadoPaso === div) {
-    div.classList.remove('seleccionado');
-    seleccionadoPaso = null;
-  } else {
-    const container = document.getElementById('pasosOrden');
-    const children = Array.from(container.children);
-    const idx1 = children.indexOf(seleccionadoPaso);
-    const idx2 = children.indexOf(div);
+  let arrastrando = null;
 
-    if (idx1 < idx2) {
-      container.insertBefore(div, seleccionadoPaso);
-    } else {
-      container.insertBefore(seleccionadoPaso, div);
-    }
+  div.draggable = true;
 
+  div.addEventListener('dragstart', function(e) {
+    arrastrando = div;
+    div.classList.add('arrastrando');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  div.addEventListener('dragend', function() {
+    div.classList.remove('arrastrando');
+    arrastrando = null;
     actualizarNumerosOrden();
-    seleccionadoPaso.classList.remove('seleccionado');
+  });
+
+  div.addEventListener('dragover', function(e) {
+    e.preventDefault();
+
+    if (!arrastrando || arrastrando === div) return;
+
+    const container = document.getElementById('pasosOrden');
+    const rect = div.getBoundingClientRect();
+    const mitad = rect.top + rect.height / 2;
+
+    if (e.clientY < mitad) {
+      container.insertBefore(arrastrando, div);
+    } else {
+      container.insertBefore(arrastrando, div.nextSibling);
+    }
+  });
+}
+ seleccionadoPaso.classList.remove('seleccionado');
     seleccionadoPaso = null;
   }
 }
